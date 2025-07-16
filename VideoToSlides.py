@@ -25,33 +25,36 @@ while True:
         continue
     # if we are successful, break the loop
     break
-
+print(totalFrames)
 # Pre testing before going through whole video
 
+for frame in range(5,300,5):
 # reset to the first frame
-video.set(cv2.CAP_PROP_POS_FRAMES, 0)
-check, firstFrame = video.read()
-# convert image to gray scale
-# SSIM works best with grayscale and reduces channels from 3 to 1
-# instead of seeing the amount of RGB in each pixel, we just see brightness
-# more efficient
-first_gray = cv2.cvtColor(firstFrame, cv2.COLOR_BGR2GRAY)
+    video.set(cv2.CAP_PROP_POS_FRAMES, frame)
+    check, curFrame = video.read()
+    # convert image to gray scale
+    # SSIM works best with grayscale and reduces channels from 3 to 1
+    # instead of seeing the amount of RGB in each pixel, we just see brightness
+    # more efficient
+    curGray = cv2.cvtColor(curFrame, cv2.COLOR_BGR2GRAY)
 
-video.set(cv2.CAP_PROP_POS_FRAMES, 1)
-check, lastFrame = video.read()
-last_gray = cv2.cvtColor(lastFrame, cv2.COLOR_BGR2GRAY)
+    video.set(cv2.CAP_PROP_POS_FRAMES, frame-5)
+    check, prevFrame = video.read()
+    prevGray = cv2.cvtColor(prevFrame, cv2.COLOR_BGR2GRAY)
 
-# SSIM requires both input images to be same height and width
-# sometimes the frames might be different in size because of video encoding, 
-# cropping during recording, or reading from different sources
-min_h = min(first_gray.shape[0], last_gray.shape[0])
-min_w = min(first_gray.shape[1], last_gray.shape[1])
+    # SSIM requires both input images to be same height and width
+    # sometimes the frames might be different in size because of video encoding, 
+    # cropping during recording, or reading from different sources
+    min_h = min(curGray.shape[0], prevGray.shape[0])
+    min_w = min(curGray.shape[1], prevGray.shape[1])
 
-# crop the frames to the right width
-first_gray = first_gray[:min_h, :min_w]
-last_gray = last_gray[:min_h, :min_w]
-score = ssim(first_gray, last_gray)
-print(score)
-# cv2.imwrite('firstFrame.png', firstFrame)
+    # crop the frames to the right width
+    curGray = curGray[:min_h, :min_w]
+    prevGray = prevGray[:min_h, :min_w]
+    score = ssim(curGray, prevGray)
+    if score < 0.97:
+        cv2.imwrite(f'firstFrame{frame}.png', curFrame)
+        # print("different slide")
+
 
 # cv2.imwrite('lastFrame.png', lastFrame)
